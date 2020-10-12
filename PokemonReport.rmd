@@ -1,0 +1,58 @@
+---
+title: "Pokemon Report"
+output: pdf_document
+--- 
+
+```{r }
+
+```
+
+## Introduction
+
+In case you've been hiding under a Geodude, Pokemon is a video game where you travel a fictional world filled with monsters that you can capture and battle with. Each generation of games introduced hundreds of more pokemon that you can battle on your way to becoming a pokemon champion.
+
+## Generations
+Let's compare the different generations. Legendary pokemon are rare and usually the most powerful ones. If you (like me) prefer Generations 1 & 2, I've got bad news. In terms of their power statistics, Gen 1 & 2 come up short on average
+```{r pt}
+pt <- read_csv("derived_data/pokemon_tidy.csv")
+
+legend_gen_tbl <- pt %>% filter(is_legendary > 0) %>% 
+ group_by(generation) %>% 
+ summarize(Legendary=sum(is_legendary)) %>% 
+ mutate(generation = factor(sprintf("generation %f", generation)))
+print(legend_gen_tbl)
+``` 
+ They have the least legendary pokemon and the lowest stat averages once you remove said legendary pokemon. This is might be an example of powercreap as the designers look fo make the newer entries better than the previous gen, so they beef up their stats, but there is not a linear increase in any of the stats, so they vary from game to game. 
+ 
+```{r }
+readRDS("figures/avg_power_fig.rds")
+
+``` 
+## Pokemon Type
+One of the main features of the game are the gyms which each have a single type of pokemon (fire, water, grass, etc.) which force the player to change strategies to defeat each type. Let's consider which is the best type excluding legendary pokemon which have different types as well.
+
+```{r }
+readRDS("figures/avg_power_type.rds")
+
+``` 
+From looking at the plots of their stats, Dragon types have higher base stats than most other types and excel at sp attack (which affects non-physical, type specific attacks). 
+
+```{r }
+legend_type_tbl <- d %>% filter(is_legendary > 0) %>% group_by(type1) %>% summarize(Legendary=sum(is_legendary)) %>% arrange(., desc(Legendary))
+nl <- d %>% filter(is_legendary == 1)
+print(legend_type_tbl)
+
+``` 
+
+
+## Just for Kicks
+
+Let's look at the heights and weights of each class of pokemon in case you're the judgemental type who only want their pokemon extra thicc (Legendaries included.
+
+```{r }
+readRDS("figures/size_fig.rds")
+```
+
+The final question left to be asked:
+
+WHY IS GEN 7 SO THICC? Most Legendaries? Have the designers final realized Chunky wins championships? The world may never know. 
