@@ -1,3 +1,5 @@
 .local
 .rstudio
 .bash_history
+.csv
+.rds
