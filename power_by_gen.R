@@ -1,6 +1,6 @@
-library(tidyverse); pt <- read_csv("derived_data/pokemon_tidy.csv")
-library(ggpubr)
-
+library(tidyverse)
+library(ggplot2)
+library(ggpubr); pt <- read_csv("derived_data/pokemon_tidy.csv")
 
 legend_gen_tbl <- pt %>% filter(is_legendary > 0) %>% 
  group_by(generation) %>% 
@@ -51,7 +51,7 @@ hps <- ggplot(powerg, aes(speed.avg, hp.avg)) +
 avg_power_fig <- ggarrange(hps,sp,a, labels = c("A","B","C"), ncol = 2 , nrow =2)
 
 ggsave("figures/speed_hp-gen.png",avg_power_fig)
-saveRDS(avg_power_fig, "figures/avg_power_fig.rds")
+saveRDS(avg_power_fig, "assets/avg_power_fig.rds")
 
-ggsave("figures/legend_gen_tbl.png",legend_gen_tbl)
-saveRDS(legend_gen_tbl, "figures/legend_gen_tbl.rds")
+write_csv(legend_gen_tbl,"derived_data/legend_gen_tbl.csv")
+saveRDS(legend_gen_tbl, "assets/legend_gen_tbl.rds")

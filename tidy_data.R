@@ -4,7 +4,7 @@ pokemon <- read_csv("source_data/pokemon.csv")
 
 library(stringr)
 names(pokemon) <- names(pokemon) %>%
-  +     tolower() %>% pokemon
+ tolower() %>% 
   str_replace_all(" - ", " ") %>%
   str_replace_all(" ","_");
 names(pokemon)

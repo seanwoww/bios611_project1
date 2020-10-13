@@ -1,4 +1,5 @@
-library(tidyverse); d <- read_csv("derived_data/pokemon_tidy.csv");
+library(tidyverse)
+library(ggpubr); d <- read_csv("derived_data/pokemon_tidy.csv");
 
 gen_weight <- d %>% mutate(generation = factor(sprintf("generation %f", generation)))%>% 
 group_by(generation) %>% filter(weight_kg > 0) %>% summarise(mean(weight_kg))
@@ -38,4 +39,4 @@ ht_wt_fig <- ggplot(avg_height_weight, aes(weight.kg.avg, height.m.avg)) +
 size_fig <- ggarrange(ht_wt_gen,ht_wt_fig, labels = c("A","B"), nrow = 2)
 
 ggsave("figures/size_fig.png",size_fig)
-saveRDS(size_fig, "figures/size_fig.rds")
+saveRDS(size_fig, "assets/size_fig.rds")

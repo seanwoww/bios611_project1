@@ -49,7 +49,7 @@ hps <- ggplot(power, aes(speed.avg, hp.avg)) +
 avg_power_type <- ggarrange(hps,sp,a, labels = c("A","B","C"), ncol = 2, nrow = 2)
 
 ggsave("figures/avg_power_type.png",avg_power_type)
-saveRDS(avg_power_type, "figures/avg_power_type.rds")
+saveRDS(avg_power_type, "assets/avg_power_type.rds")
 
-ggsave("figures/legend_gen_tbl.png",legend_type_tbl)
-saveRDS(legend_type_tbl, "figures/legend_type_tbl")
+write_csv(legend_type_tbl,"figures/legend_gen_tbl.csv")
+saveRDS(legend_type_tbl, "assets/legend_type_tbl.rds")
