@@ -1,0 +1,73 @@
+---
+title: "Homework_4"
+output: html_document
+---
+## Problem 1 (I tried my best)
+```{r}
+d <- read_csv("500_Person_Gender_Height_Weight_Index.csv")
+dt <- d %>% mutate(Gender = factor(sprintf("%s", Gender)))
+dp <- dt %>% mutate(factor(c(rep("Train",350),rep("Validate",75),rep("Test",75))))
+
+
+train <- dp %>% filter(`factor(...)`=="Train");
+validate <- dp %>% filter(`factor(...)`=="Validate");
+test <- dp %>% filter(`factor(...)`=="Test");
+
+model <- glm(Gender ~ Height + Weight, family=binomial(link = "logit"), data=train)
+pred <- predict(model, validate, type="response");
+sum((pred>0.5) == validate$Gender)/nrow(validate)
+```
+I don't know why it produces 0, but it's the best I got.
+
+
+## Problem 2
+
+```{r}
+library(gbm)
+d <- read_csv("500_Person_Gender_Height_Weight_Index.csv")
+dt <- d %>% mutate(Gender = factor(sprintf("%s", Gender)))
+dp <- dt %>% mutate(factor(c(rep("Train",350),rep("Validate",75),rep("Test",75))))
+
+
+train <- dp %>% filter(`factor(...)`=="Train");
+validate <- dp %>% filter(`factor(...)`=="Validate");
+test <- dp %>% filter(`factor(...)`=="Test");
+
+model <- gbm((unclass(Gender)-1) ~ Height + Weight ,distribution = "bernoulli", data=train);
+
+pred <- predict(model, validate, type="response");
+sum((pred>0.5)==validate$Gender)/nrow(validate);
+
+```
+
+## Problem 3
+
+```{r}
+d <- read_csv("500_Person_Gender_Height_Weight_Index.csv")
+dt <- d %>% mutate(Gender = factor(sprintf("%s", Gender)))
+dmale <- dt %>% filter(.,Gender == "Male") %>% slice(.,1:50)
+dfemale <- dt %>% filter(.,Gender == "Female") 
+dcombine <- full_join(dmale, dfemale)
+dsp <- dcombine %>% mutate(factor(c(rep("Train",213),rep("Validate",46),rep("Test",46))))
+
+
+train <- dsp %>% filter(`factor(...)`=="Train");
+validate <- dsp %>% filter(`factor(...)`=="Validate");
+test <- dsp %>% filter(`factor(...)`=="Test");
+
+model <- gbm((unclass(Gender)-1) ~ Height + Weight ,distribution = "bernoulli", data=test);
+
+pred <- predict(model, validate, type="response");
+sum((pred>0.5)==validate$Gender)/nrow(validate)
+
+```
+## Problem 4
+```{r}
+
+```
+
+
+## Problem 5
+```{r}
+
+```
