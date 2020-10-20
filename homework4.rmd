@@ -2,22 +2,29 @@
 title: "Homework_4"
 output: html_document
 ---
-## Problem 1 (I tried my best)
+
+```{r}
+install.packages("MLmetrics")
+install.packages("gbm")
+install.packages("Rtsne")
+```
+
+## Problem 1 
 ```{r}
 d <- read_csv("500_Person_Gender_Height_Weight_Index.csv")
-dt <- d %>% mutate(Gender = factor(sprintf("%s", Gender)))
-dp <- dt %>% mutate(factor(c(rep("Train",350),rep("Validate",75),rep("Test",75))))
+dft <- d %>% mutate(Gender_Boolean = Gender =="Female") %>% mutate(Gender_Binary = as.numeric(Gender_Boolean))
+dp <- dft %>% mutate(factor(c(rep("Train",350),rep("Validate",75),rep("Test",75))))
 
 
 train <- dp %>% filter(`factor(...)`=="Train");
 validate <- dp %>% filter(`factor(...)`=="Validate");
 test <- dp %>% filter(`factor(...)`=="Test");
 
-model <- glm(Gender ~ Height + Weight, family=binomial(link = "logit"), data=train)
+model <- glm(Gender_Binary ~ Height + Weight, family=binomial(link = "logit"), data=train)
 pred <- predict(model, validate, type="response");
-sum((pred>0.5) == validate$Gender)/nrow(validate)
+sum((pred>0.5) == validate$Gender_Binary)/nrow(validate)
 ```
-I don't know why it produces 0, but it's the best I got.
+Roughly 50% which is about as good as guessing only male or female.
 
 
 ## Problem 2
@@ -25,49 +32,105 @@ I don't know why it produces 0, but it's the best I got.
 ```{r}
 library(gbm)
 d <- read_csv("500_Person_Gender_Height_Weight_Index.csv")
-dt <- d %>% mutate(Gender = factor(sprintf("%s", Gender)))
-dp <- dt %>% mutate(factor(c(rep("Train",350),rep("Validate",75),rep("Test",75))))
+dft <- d %>% mutate(Gender_Boolean = Gender =="Female") %>% mutate(Gender_Binary = as.numeric(Gender_Boolean))
+dp <- dft %>% mutate(factor(c(rep("Train",350),rep("Validate",75),rep("Test",75))))
 
 
 train <- dp %>% filter(`factor(...)`=="Train");
 validate <- dp %>% filter(`factor(...)`=="Validate");
 test <- dp %>% filter(`factor(...)`=="Test");
 
-model <- gbm((unclass(Gender)-1) ~ Height + Weight ,distribution = "bernoulli", data=train);
+model <- gbm(Gender_Binary ~ Height + Weight ,distribution = "bernoulli", data=train);
 
 pred <- predict(model, validate, type="response");
-sum((pred>0.5)==validate$Gender)/nrow(validate);
+sum((pred>0.5)==validate$Gender_Binary)/nrow(validate);
 
 ```
 
 ## Problem 3
 
 ```{r}
+
+library(gbm)
+
 d <- read_csv("500_Person_Gender_Height_Weight_Index.csv")
-dt <- d %>% mutate(Gender = factor(sprintf("%s", Gender)))
-dmale <- dt %>% filter(.,Gender == "Male") %>% slice(.,1:50)
-dfemale <- dt %>% filter(.,Gender == "Female") 
+dft <- d %>% mutate(Gender_Boolean = Gender =="Female") %>% mutate(Gender_Binary = as.numeric(Gender_Boolean))
+dmale <- dft %>% filter(.,Gender == "Male") %>% slice(.,1:50)
+dfemale <- dft %>% filter(.,Gender == "Female") 
 dcombine <- full_join(dmale, dfemale)
-dsp <- dcombine %>% mutate(factor(c(rep("Train",213),rep("Validate",46),rep("Test",46))))
+
+set.seed(50)
+rows <- sample(nrow(dcombine))
+drcombine <- dcombine[rows, ]
+
+dsp <- drcombine %>% mutate(factor(c(rep("Train",213),rep("Validate",46),rep("Test",46))))
 
 
 train <- dsp %>% filter(`factor(...)`=="Train");
 validate <- dsp %>% filter(`factor(...)`=="Validate");
 test <- dsp %>% filter(`factor(...)`=="Test");
 
-model <- gbm((unclass(Gender)-1) ~ Height + Weight ,distribution = "bernoulli", data=test);
+model <- gbm(Gender_Binary ~ Height + Weight ,distribution = "bernoulli", data=test);
 
 pred <- predict(model, validate, type="response");
-sum((pred>0.5)==validate$Gender)/nrow(validate)
+sum((pred>0.5)==validate$Gender_Binary)/nrow(validate)
+
+library(MLmetrics)
+f1 <- MLmetrics::F1_Score; f1
+
+f1(validate$Gender_Binary, pred>0.5) 
+
 
 ```
 ## Problem 4
-```{r}
+```{r ECHO=FALSE}
+d <- read_csv("500_Person_Gender_Height_Weight_Index.csv")
+dft <- d %>% mutate(Gender_Boolean = Gender =="Female") %>% mutate(Gender_Binary = as.numeric(Gender_Boolean))
+dmale <- dft %>% filter(.,Gender == "Male") %>% slice(.,1:50)
+dfemale <- dft %>% filter(.,Gender == "Female") 
+dcombine <- full_join(dmale, dfemale)
+
+set.seed(50)
+rows <- sample(nrow(dcombine))
+drcombine <- dcombine[rows, ]
+
+dsp <- drcombine %>% mutate(factor(c(rep("Train",213),rep("Validate",46),rep("Test",46))))
+
+
+train <- dsp %>% filter(`factor(...)`=="Train");
+validate <- dsp %>% filter(`factor(...)`=="Validate");
+test <- dsp %>% filter(`factor(...)`=="Test");
+
+model <- gbm(Gender_Binary ~ Height + Weight ,distribution = "bernoulli", data=test);
+
+
+roc <- do.call(rbind, Map(function(threshold){
+    p <- pred > threshold;
+    tp <- sum(p[validate$Gender_Binary])/sum(validate$Gender_Binary);
+    fp <- sum(p[!validate$Gender_Binary])/sum(!validate$Gender_Binary)
+    tibble(threshold=threshold,tp=tp,fp=fp)},seq(100)/100))
+
+ggplot(roc, aes(fp,tp)) + geom_line() + xlim(0,1) + ylim(0,1) + labs(title="ROC Curve",x="False Positive Rate",y="True Positive Rate")
+roc
+
 
 ```
 
 
 ## Problem 5
 ```{r}
+library(Rtsne);
+d <- read_csv("500_Person_Gender_Height_Weight_Index.csv")
+dft <- d %>% mutate(Gender_Boolean = Gender =="Female") %>% mutate(Gender_Binary = as.numeric(Gender_Boolean))
+
+ds <-dft %>% select(.,Gender_Binary, Height, Weight)
+
+
+cc <- kmeans(ds, 4);
+fit <- Rtsne(ds, dims = 2, check_duplicates = FALSE);
+ggplot(fit$Y %>% as.data.frame() %>% as_tibble() %>% mutate(label=cc$cluster),aes(V1,V2)) +
+    geom_point(aes(color=factor(label)))
+
+
 
 ```
