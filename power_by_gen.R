@@ -1,6 +1,7 @@
 library(tidyverse)
 library(ggplot2)
-library(ggpubr); pt <- read_csv("derived_data/pokemon_tidy.csv")
+library(ggpubr)
+pt <- read_csv("derived_data/pokemon_tidy.csv")
 
 legend_gen_tbl <- pt %>% filter(is_legendary > 0) %>% 
  group_by(generation) %>% 
