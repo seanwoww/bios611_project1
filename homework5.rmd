@@ -1,0 +1,143 @@
+---
+title: "Homework_5"
+output: html_document
+---
+
+```{r}
+install.packages("MLmetrics")
+install.packages("gbm")
+install.packages("Rtsne")
+install.packages("caret")
+```
+
+## Problem 1 
+```{r}
+library(gbm)
+d <-read_csv("./datasets_26073_33239_weight-height.csv")
+dft <- d %>% mutate(Gender_Boolean = Gender =="Female") %>% mutate(Gender_Binary = as.numeric(Gender_Boolean))
+
+set.seed(50)
+rows <- sample(nrow(dft))
+dran <- dft[rows, ]
+
+dp <- dran %>% mutate(factor(c(rep("Train",5000),rep("Validate",2500),rep("Test",2500))))
+
+
+train <- dp %>% filter(`factor(...)`=="Train");
+validate <- dp %>% filter(`factor(...)`=="Validate");
+test <- dp %>% filter(`factor(...)`=="Test");
+
+model <- gbm(Gender_Boolean ~ Height + Weight ,distribution = "bernoulli", data=train);
+
+pred <- predict(model, validate, type="response");
+sum((pred>0.5)==validate$Gender_Boolean)/nrow(validate)
+```
+.9072 is certainly better than the .493 from before. The model is able to predict it more accurately, which means there is a discernable pattern.
+
+## Problem 2
+
+```{r}
+data <-read_csv("datasets_38396_60978_charcters_stats.csv")
+dataf <- data %>% filter(.,data$Power > 0)
+pcs <- prcomp(dataf %>% select(Intelligence,Strength,Speed,Power,Durability, Combat));
+summary(pcs)
+
+sum(dataf$Intelligence) 
+sum(dataf$Strength) 
+sum(dataf$Speed) 
+sum(dataf$Power) 
+sum(dataf$Durability) 
+sum(dataf$Combat)
+
+
+sum(dataf$Intelligence,dataf$Strength,dataf$Speed,dataf$Power,dataf$Durability,dataf$Combat)
+
+
+sum(dataf$Total)
+
+ggplot(dataf, aes(Intelligence, Combat)) +
+geom_point(aes(color=Alignment), alpha=0.4) + 
+xlim(0, 105) + ylim(0, 105)
+```
+1. There is clearly a pattern of characters that have 1s across the board and a 0 in power. THis occurs again and again for characters that it clearly isn't accurate like Hawkman and Ghost Rider. I would eliminate all of these rows because they are inaccurate.
+2. It takes four components to cover over 85% of the variance.
+3. I don't think we need to normalize the columns because they are all on a scale to 100.
+4. Total is the sum of the the different quantities.
+5. Since it is the sum of all of the quantities I can't imagine the sum of them would add any additional insight, so it should be fine leaving it off.
+6. There are good characters fit the same levels of combat as there are intelligence, but there are also a lot of dumb fighters and smart wimps.
+
+
+## Problem 3
+
+```{r}
+TS <- read_csv("TSNE.csv")
+big <- read_csv("datasets_38396_60978_charcters_stats.csv")
+
+ggplot(TS %>% as.data.frame() %>% as_tibble(), aes(x = TS$`2.175261497497558594e+00`,y = TS$`3.425451755523681641e+00`)) +
+  geom_point(aes(color = TS$`2.175261497497558594e+00`))
+
+```
+I was not able to figure out how to TSNE while selecting specific columns, so I was not able to select by alignment. 
+
+
+
+## Problem 4
+```{r ECHO=FALSE}
+library(Rtsne)
+st <- read_csv("datasets_38396_60978_charcters_stats.csv")
+
+stTS <- Rtsne(st%>% select(.,Intelligence, Strength, Speed, Durability, Power, Combat),dims =2, check_duplicates = FALSE);
+stTSNE <- ggplot(stTS$Y %>% as.data.frame() %>% as_tibble() %>% mutate(label=st$Alignment), aes(V1,V2)) +
+  geom_point(aes(color=st$Alignment), alpha = 0.3)
+stTSNE
+```
+I'm pretty sure I lost the first point of the TSNE I did in Python, but I don't know if that caused the differences.
+
+## Problem 5
+```{r}
+library(caret)
+library(gbm)
+
+data <-read_csv("datasets_38396_60978_charcters_stats.csv")
+dataf <- data %>% filter(.,data$Power > 0)
+
+dft <- dataf %>% mutate(Alignment_Boolean = Alignment =="good") %>% mutate(Alignment_Binary = as.numeric(Alignment_Boolean))
+
+set.seed(20)
+rows <- sample(nrow(dft))
+dran <- dft[rows, ]
+
+dp <- dran %>% mutate(factor(c(rep("Train",216),rep("Validate",108),rep("Test",108))))
+
+
+training <- dp %>% filter(`factor(...)`=="Train");
+validate <- dp %>% filter(`factor(...)`=="Validate");
+test <- dp %>% filter(`factor(...)`=="Test");
+
+
+metric <- "RMSE"
+trainControl <- trainControl(method="repeatedcv")
+
+set.seed(99)
+gbm.align <- train(Alignment_Binary ~ Intelligence + Strength + Speed + Durability + Power + Combat, 
+                   data=training
+                   , distribution="bernoulli"
+                   , method="gbm"
+                   , tcControl=trainControl
+                   , metric = metric
+                   , verbose=FALSE)                  
+
+gbm.align
+
+caret.predict <- predict(gbm.align, newdata=test, type="raw")
+caret.predict
+
+```
+
+
+
+## Problem 6
+Because a model might be fitted to a particular data set which leads to a model that can predict the data it was trained in but not any other data set. Using other means to evaluate them makes sure they are accurate to any kind of data.
+
+## Problem 7
+Recursive factor elimination wraps a learning machine and calculates the relative importance of each of them an eliminates the least. It repeats this until it is down to the desired number.
