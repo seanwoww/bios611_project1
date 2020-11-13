@@ -1,10 +1,16 @@
 .PHONY: clean
+.PHONY: Shiny_Pokemon
+
 
 clean:
 	rm ./*.rds
 	rm ./figures/*
 	rm ./PokemonReport.pdf
 	rm ./derived_data/*
+
+Shiny_Pokemon:\
+ derived_data/pokemon_tidy.csv
+	Rscript Shiny_Pokemon.R ${PORT}
 
 PokemonReport.pdf:\
  PokemonReport.Rmd\
@@ -15,6 +21,7 @@ PokemonReport.pdf:\
  figures/size_fig.rds\
  assets/type_tsne.rds\
  assets/gen_tsne.rds\
+ assets/powerplot.png\
  figures/gen_tsne.png\
  figures/type_tsne.png\
  derived_data/pokemon_tidy.csv
