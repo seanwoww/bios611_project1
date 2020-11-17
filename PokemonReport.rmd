@@ -56,6 +56,14 @@ Let's look at the heights and weights of each class of Pokemon in case you're th
 readRDS('assets/size_fig.rds')
 ```
 
-The final question left to be asked:
 
-Why is Generation 7 so thick? Most Legendaries? Have the designers final realized Chunky wins championships? The world may never know. 
+## Gender (in Python)
+
+Each Pokemon that you run into has a chance of being either male or female (unless the specific Pokemon is not gendered) depending on the Pokemon. I wanted to see if certain types of Pokemon were more likely to be male or female and that frequencies corresponded with happiness (loyalty to trainer.)
+
+![Gender Histogram](./figures/gender_hist.png)
+
+In terms of the number of (gendered) Pokemon, there are more Pokemon that are more likely to be male which is interesting if not. This might not say much, but it is interesting. Most are evenly male and female 
+
+![Gender Histogram](./figures/gender_happinessbytype.png)
+Lastly, There are some types of Pokemon that are more likely to be male. Fire, fighting and rock types because fire, fighting and rocks are for the boyz. I do think this shows an interesting bias toward male Pokemon, however slight it may be.
